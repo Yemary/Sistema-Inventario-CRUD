@@ -1,9 +1,8 @@
+<?php include 'conexion.php'; ?>
 <?php
-$conn = new mysqli("localhost", "root", "", "inventario_db");
-if ($conn->connect_error) die("Error de conexión: " . $conn->connect_error);
 
 $sql = "SELECT * FROM productos ORDER BY nombre ASC";
-$resultado = $conn->query($sql);
+$resultado = mysqli_query($conexion, $sql);
 ?>
 
 <!DOCTYPE html>
@@ -11,11 +10,22 @@ $resultado = $conn->query($sql);
 <head>
     <meta charset="UTF-8">
     <title>Lista de Productos</title>
+    <style>
+        nav { margin-bottom: 15px; padding: 10px; background: #f0f0f0; }
+    </style>
 </head>
 <body>
+
+<!-- Menú de navegación -->
+<nav>
+    <a href="registrar.php">Registrar nuevo producto</a> |
+    <a href="listar.php">Ver listado completo</a> |
+    <a href="calcular_stock.php">Resumen de inventario</a>
+</nav>
+
     <h2>Listado de Productos en Inventario</h2>
 
-    <?php if ($resultado->num_rows > 0): ?>
+    <?php if (mysqli_num_rows($resultado) > 0): ?>
     <table border="1" cellpadding="10" cellspacing="0">
         <tr>
             <th>ID</th>
@@ -23,14 +33,19 @@ $resultado = $conn->query($sql);
             <th>Precio</th>
             <th>Stock</th>
             <th>Categoría</th>
+            <th>Acciones</th>
         </tr>
-        <?php while ($fila = $resultado->fetch_assoc()): ?>
+        <?php while ($fila = mysqli_fetch_assoc($resultado)): ?>
         <tr>
             <td><?= $fila['id'] ?></td>
-            <td><?= $fila['nombre'] ?></td>
-            <td>$<?= number_format($fila['precio'], 2) ?></td>
+            <td><?= htmlspecialchars($fila['nombre']) ?></td>
+            <td>RD$ <?= number_format($fila['precio'], 2) ?></td>
             <td><?= $fila['stock'] ?></td>
-            <td><?= $fila['categoria'] ?></td>
+            <td><?= htmlspecialchars($fila['categoria']) ?></td>
+            <td>
+                <a href='editar.php?id=<?= $fila['id'] ?>'>Editar</a> |
+                <a href='eliminar.php?id=<?= $fila['id'] ?>' onclick='return confirm("¿Seguro que quieres borrar este producto?")'>Eliminar</a>
+            </td>
         </tr>
         <?php endwhile; ?>
     </table>
@@ -38,6 +53,5 @@ $resultado = $conn->query($sql);
         <p>No hay productos registrados aún</p>
     <?php endif; ?>
 
-    <?php $conn->close(); ?>
 </body>
 </html>

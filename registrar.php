@@ -1,28 +1,25 @@
+<?php include 'conexion.php'; ?>
 <?php
-$conn = new mysqli("localhost", "root", "", "inventario_db");
-if ($conn->connect_error) die("Error de conexión: " . $conn->connect_error);
-
 $mensaje = "";
 if($_SERVER["REQUEST_METHOD"] == "POST"){
-    $nombre = trim($_POST['nombre']);
-    $precio = trim($_POST['precio']);
-    $stock = trim($_POST['stock']);
-    $categoria = trim($_POST['categoria']);
+    $nombre = mysqli_real_escape_string($conexion, trim($_POST['nombre']));
+    $precio = floatval($_POST['precio']);
+    $stock = intval($_POST['stock']);
+    $categoria = mysqli_real_escape_string($conexion, trim($_POST['categoria']));
 
     if(!empty($nombre) && !empty($precio) && !empty($stock) && !empty($categoria)){
         $sql = "INSERT INTO productos (nombre, precio, stock, categoria) 
-                VALUES ('$nombre', '$precio', '$stock', '$categoria')";
+                VALUES ('$nombre', $precio, $stock, '$categoria')";
         
-        if($conn->query($sql)){
-            $mensaje = "<p style='color:green;'>✅ Producto registrado correctamente</p>";
+        if(mysqli_query($conexion, $sql)){
+            $mensaje = "<p style='color:green;'>✅ Producto registrado correctamente. <a href='listar.php'>Ver listado</a></p>";
         } else {
-            $mensaje = "<p style='color:red;'>❌ Error al registrar: " . $conn->error . "</p>";
+            $mensaje = "<p style='color:red;'>❌ Error al registrar: " . mysqli_error($conexion) . "</p>";
         }
     } else {
         $mensaje = "<p style='color:red;'>⚠️ Todos los campos son obligatorios</p>";
     }
 }
-$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -30,8 +27,19 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <title>Registrar Producto</title>
+    <style>
+        nav { margin-bottom: 15px; padding: 10px; background: #f0f0f0; }
+    </style>
 </head>
 <body>
+
+<!-- Menú de navegación -->
+<nav>
+    <a href="registrar.php">Registrar nuevo producto</a> |
+    <a href="listar.php">Ver listado completo</a> |
+    <a href="calcular_stock.php">Resumen de inventario</a>
+</nav>
+
     <h2>Formulario de Registro de Productos</h2>
     <?= $mensaje ?>
 
@@ -39,8 +47,8 @@ $conn->close();
         <label>Nombre del producto:</label><br>
         <input type="text" name="nombre" required><br><br>
 
-        <label>Precio ($):</label><br>
-        <input type="number" step="0.01" name="precio" required><br><br>
+        <label>Precio (RD$):</label><br>
+        <input type="number" step="0.01" name="precio" required min="0.01"><br><br>
 
         <label>Cantidad en stock:</label><br>
         <input type="number" name="stock" required min="0"><br><br>
